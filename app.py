@@ -1,5 +1,14 @@
+import io
+import fitz
 import streamlit as st
 from scorer import score_resume
+
+
+def extract_text(uploaded_file) -> str:
+    if uploaded_file.name.endswith(".pdf"):
+        pdf = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        return "\n".join(page.get_text() for page in pdf)
+    return uploaded_file.read().decode("utf-8")
 
 st.set_page_config(page_title="Resume Match Scorer", page_icon="📄", layout="wide")
 
@@ -19,15 +28,15 @@ with col1:
 
 with col2:
     st.subheader("Resume")
-    upload_tab, paste_tab = st.tabs(["Upload .txt file", "Paste text"])
+    upload_tab, paste_tab = st.tabs(["Upload file", "Paste text"])
 
     with upload_tab:
         uploaded_file = st.file_uploader(
-            "Upload your resume as a .txt file",
-            type=["txt"],
+            "Upload your resume",
+            type=["txt", "pdf"],
             label_visibility="collapsed",
         )
-        resume_from_file = uploaded_file.read().decode("utf-8") if uploaded_file else ""
+        resume_from_file = extract_text(uploaded_file) if uploaded_file else ""
 
     with paste_tab:
         resume_from_paste = st.text_area(
